@@ -1,5 +1,5 @@
 #!/bin/bash
-CONFIG_FILE=${1:-/etc/port-checker.conf}
+CONFIG_FILE=${1:-/etc/ssl-checker.conf}
 
 echo "Validating configuration file: $CONFIG_FILE"
 
@@ -27,10 +27,10 @@ if [[ ! $port =~ ^[0-9]+$ ]]; then
     exit 1
 fi
 
-if grep -q "^CHECK_INTERVAL=" "$CONFIG_FILE"; then
-    interval=$(grep "^CHECK_INTERVAL=" "$CONFIG_FILE" | cut -d'=' -f2-)
-    if [[ ! $interval =~ ^[0-9]+$ ]]; then
-        echo "❌ CHECK_INTERVAL must be a number"
+if grep -q "^DAYS_WARNING=" "$CONFIG_FILE"; then
+    days_warning=$(grep "^DAYS_WARNING=" "$CONFIG_FILE" | cut -d'=' -f2-)
+    if [[ ! $days_warning =~ ^[0-9]+$ ]]; then
+        echo "❌ DAYS_WARNING must be a number"
         exit 1
     fi
 fi

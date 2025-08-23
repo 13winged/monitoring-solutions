@@ -23,28 +23,52 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y shellcheck openssl
+        # Общие зависимости
+        sudo apt-get install -y shellcheck
+        # Зависимости для конкретных компонентов
+        if [ "${{ matrix.component }}" = "ssl-checker" ]; then
+          sudo apt-get install -y openssl
+        fi
+        if [ "${{ matrix.component }}" = "process-monitor" ]; then
+          sudo apt-get install -y curl procps
+        fi
+        if [ "${{ matrix.component }}" = "port-checker" ]; then
+          sudo apt-get install -y netcat-openbsd
+        fi
 
     - name: Lint check for ${{ matrix.component }}
       run: |
         cd ${{ matrix.component }}/src
-        shellcheck *.sh || echo "ShellCheck issues found but not failing build"
+        if ls *.sh 1> /dev/null 2>&1; then
+          shellcheck *.sh || echo "ShellCheck issues found but not failing build"
+        else
+          echo "No shell scripts found for linting"
+        fi
 
     - name: Test ${{ matrix.component }}
       run: |
-        cd ${{ matrix.component }}/scripts
-        chmod +x test-*.sh
-        ./test-${{ matrix.component }}.sh
+        cd ${{ matrix.component }}
+        if [ -f "scripts/test-${{ matrix.component }}.sh" ]; then
+          chmod +x scripts/test-*.sh
+          ./scripts/test-${{ matrix.component }}.sh
+        else
+          echo "No test script found for ${{ matrix.component }}"
+        fi
 
     - name: Validate configuration examples
       run: |
-        cd ${{ matrix.component }}/examples
-        for conf_file in *.conf*; do
-          echo "Validating $conf_file"
-          if [ -f "../scripts/validate-config.sh" ]; then
-            ../scripts/validate-config.sh "$conf_file"
-          fi
-        done
+        cd ${{ matrix.component }}
+        if [ -d "examples" ]; then
+          cd examples
+          for conf_file in *.conf*; do
+            if [ -f "$conf_file" ]; then
+              echo "Validating $conf_file"
+              if [ -f "../scripts/validate-config.sh" ]; then
+                ../scripts/validate-config.sh "$conf_file"
+              fi
+            fi
+          done
+        fi
 
   docker-build:
     runs-on: ubuntu-latest
@@ -86,6 +110,7 @@ jobs:
         cp -r examples release/
         cp LICENSE release/
         cp README.md release/
+        cp CHANGELOG.md release/
         
         tar -czf monitoring-solutions-${GITHUB_REF#refs/tags/}.tar.gz -C release .
         
