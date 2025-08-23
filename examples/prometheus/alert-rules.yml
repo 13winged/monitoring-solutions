@@ -1,0 +1,69 @@
+groups:
+- name: process-monitor-alerts
+  rules:
+  - alert: ProcessDown
+    expr: process_monitor_process_state == 0
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Process {{ $labels.instance }} is down"
+      description: "The process {{ $labels.process }} has been down for more than 5 minutes."
+
+  - alert: ProcessRestartLoop
+    expr: increase(process_monitor_restart_attempts_total[1h]) > 5
+    for: 0m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Process {{ $labels.instance }} restart loop"
+      description: "The process {{ $labels.process }} has been restarted more than 5 times in the last hour."
+
+- name: port-checker-alerts
+  rules:
+  - alert: PortDown
+    expr: port_checker_up == 0
+    for: 3m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Port {{ $labels.port }} on {{ $labels.host }} is down"
+      description: "Port {{ $labels.port }} on {{ $labels.host }} has been down for more than 3 minutes."
+
+  - alert: PortCheckSlow
+    expr: port_checker_check_duration_seconds > 3
+    for: 2m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Port check for {{ $labels.host }}:{{ $labels.port }} is slow"
+      description: "Port check for {{ $labels.host }}:{{ $labels.port }} is taking more than 3 seconds."
+
+- name: ssl-checker-alerts
+  rules:
+  - alert: SSLCertExpiringSoon
+    expr: ssl_certificate_expiry_days < 30
+    for: 0m
+    labels:
+      severity: warning
+    annotations:
+      summary: "SSL certificate for {{ $labels.host }}:{{ $labels.port }} expiring soon"
+      description: "SSL certificate for {{ $labels.host }}:{{ $labels.port }} expires in {{ $value }} days."
+
+  - alert: SSLCertExpired
+    expr: ssl_certificate_expiry_days < 0
+    for: 0m
+    labels:
+      severity: critical
+    annotations:
+      summary: "SSL certificate for {{ $labels.host }}:{{ $labels.port }} has expired"
+      description: "SSL certificate for {{ $labels.host }}:{{ $labels.port }} has expired."
+
+  - alert: SSLCertError
+    expr: ssl_certificate_check_result == 1
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: "Error checking SSL certificate for {{ $labels.host }}:{{ $labels.port }}"
+      description: "Unable to check SSL certificate for {{ $labels.host }}:{{ $labels.port }} for more than 5 minutes."

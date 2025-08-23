@@ -1,0 +1,11 @@
+[Unit]
+Description=SSL Certificate Checker
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/ssl-checker.sh
+User=root
+
+[Install]
+WantedBy=multi-user.target

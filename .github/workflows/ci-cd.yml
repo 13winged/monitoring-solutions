@@ -1,0 +1,96 @@
+name: CI/CD for Monitoring Solutions
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  lint-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        component: ['process-monitor', 'port-checker', 'ssl-checker']
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Setup Bash
+      run: echo "SHELL=/bin/bash" >> $GITHUB_ENV
+
+    - name: Install dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y shellcheck openssl
+
+    - name: Lint check for ${{ matrix.component }}
+      run: |
+        cd ${{ matrix.component }}/src
+        shellcheck *.sh || echo "ShellCheck issues found but not failing build"
+
+    - name: Test ${{ matrix.component }}
+      run: |
+        cd ${{ matrix.component }}/scripts
+        chmod +x test-*.sh
+        ./test-${{ matrix.component }}.sh
+
+    - name: Validate configuration examples
+      run: |
+        cd ${{ matrix.component }}/examples
+        for conf_file in *.conf*; do
+          echo "Validating $conf_file"
+          if [ -f "../scripts/validate-config.sh" ]; then
+            ../scripts/validate-config.sh "$conf_file"
+          fi
+        done
+
+  docker-build:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    needs: lint-and-test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Build and push Docker images
+      uses: docker/build-push-action@v4
+      with:
+        context: ./docker
+        push: false
+        tags: monitoring-solutions:latest
+
+  release:
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: lint-and-test
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Create release archive
+      run: |
+        mkdir release
+        cp -r process-monitor release/
+        cp -r port-checker release/
+        cp -r ssl-checker release/
+        cp -r docker release/
+        cp -r scripts release/
+        cp -r docs release/
+        cp -r examples release/
+        cp LICENSE release/
+        cp README.md release/
+        
+        tar -czf monitoring-solutions-${GITHUB_REF#refs/tags/}.tar.gz -C release .
+        
+    - name: Upload release asset
+      uses: actions/upload-artifact@v3
+      with:
+        name: monitoring-solutions-package
+        path: monitoring-solutions-${GITHUB_REF#refs/tags/}.tar.gz

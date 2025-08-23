@@ -1,0 +1,17 @@
+# Временные файлы
+*.tmp
+*.log
+*.prom.*
+
+# Директории с данными
+/data/
+/tmp/
+
+# IDE файлы
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Docker образы
+*.tar.gz

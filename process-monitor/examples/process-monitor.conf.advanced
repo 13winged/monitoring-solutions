@@ -1,0 +1,9 @@
+# Продвинутая конфигурация с JSON-логированием
+PROCESS_NAME=myapp
+MONITORING_URL=https://api.example.com/health
+LOG_FORMAT=json
+AUTO_RESTART_ENABLED=true
+MAX_RESTART_ATTEMPTS=5
+RESTART_COMMAND=/opt/myapp/scripts/restart.sh
+RESTART_COOLDOWN=120
+MAX_RETRIES=5

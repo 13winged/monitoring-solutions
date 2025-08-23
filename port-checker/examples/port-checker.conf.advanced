@@ -1,0 +1,8 @@
+# Продвинутая конфигурация с несколькими хостами
+# Для использования с модифицированной версией скрипта
+HOSTS=google.com,github.com,example.com
+PORT=443
+CHECK_INTERVAL=60
+LOG_FILE=/var/log/port-checker.log
+METRICS_DIR=/var/lib/node_exporter
+LOG_LEVEL=INFO

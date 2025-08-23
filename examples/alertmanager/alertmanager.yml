@@ -1,0 +1,31 @@
+global:
+  resolve_timeout: 5m
+  smtp_from: 'alertmanager@example.com'
+  smtp_smarthost: 'smtp.example.com:587'
+  smtp_auth_username: 'alertmanager'
+  smtp_auth_password: 'password'
+  smtp_require_tls: true
+
+route:
+  group_by: ['alertname', 'cluster']
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 1h
+  receiver: 'email-alerts'
+
+receivers:
+  - name: 'email-alerts'
+    email_configs:
+      - to: 'admin@example.com'
+        send_resolved: true
+
+  - name: 'slack-alerts'
+    slack_configs:
+      - api_url: 'https://hooks.slack.com/services/XXX/XXX/XXX'
+        channel: '#alerts'
+        send_resolved: true
+
+  - name: 'webhook-alerts'
+    webhook_configs:
+      - url: 'http://webhook.example.com/alert'
+        send_resolved: true

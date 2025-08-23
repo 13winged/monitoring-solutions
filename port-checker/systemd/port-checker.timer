@@ -1,0 +1,11 @@
+[Unit]
+Description=Run port-checker every minute
+Requires=port-checker.service
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=1min
+AccuracySec=1s
+
+[Install]
+WantedBy=timers.target

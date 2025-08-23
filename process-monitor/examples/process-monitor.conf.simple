@@ -1,0 +1,5 @@
+# Простая конфигурация для мониторинга процесса
+PROCESS_NAME=nginx
+MONITORING_URL=https://example.com/health
+AUTO_RESTART_ENABLED=true
+RESTART_COMMAND=systemctl restart nginx

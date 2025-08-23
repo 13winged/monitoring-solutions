@@ -1,0 +1,107 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Process Monitor Dashboard",
+    "tags": ["process", "monitoring", "auto-recovery"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Process State",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "process_monitor_process_state",
+            "legendFormat": "{{instance}}",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "mappings": [
+              {"from": "0", "to": "Down", "text": "Down"},
+              {"from": "1", "to": "Up", "text": "Up"}
+            ],
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": null},
+                {"color": "green", "value": 1}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Restart Attempts",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "increase(process_monitor_restart_attempts_total[1h])",
+            "legendFormat": "Restarts per hour",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+      },
+      {
+        "id": 3,
+        "title": "Execution Duration",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "process_monitor_execution_duration_seconds",
+            "legendFormat": "Duration",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8}
+      },
+      {
+        "id": 4,
+        "title": "Auto-Restart Status",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "process_monitor_auto_restart_enabled",
+            "legendFormat": "Auto-Restart",
+            "refId": "A"
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "mappings": [
+              {"from": "0", "to": "Disabled", "text": "Disabled"},
+              {"from": "1", "to": "Enabled", "text": "Enabled"}
+            ],
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": null},
+                {"color": "green", "value": 1}
+              ]
+            }
+          }
+        }
+      }
+    ],
+    "time": {"from": "now-6h", "to": "now"},
+    "timepicker": {},
+    "templating": {
+      "list": [
+        {
+          "name": "instance",
+          "type": "query",
+          "query": "label_values(process_monitor_process_state, instance)",
+          "refresh": 1,
+          "includeAll": true
+        }
+      ]
+    },
+    "refresh": "10s"
+  },
+  "overwrite": false
+}

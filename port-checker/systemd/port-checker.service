@@ -1,0 +1,21 @@
+[Unit]
+Description=Port Checker Daemon
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/port-checker.sh
+User=root
+Restart=always
+RestartSec=10
+StandardOutput=syslog
+StandardError=syslog
+
+# Настройки для безопасности
+ProtectSystem=strict
+ReadWritePaths=/var/log/port-checker.log /var/lib/node_exporter
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=multi-user.target

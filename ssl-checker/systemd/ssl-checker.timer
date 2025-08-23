@@ -1,0 +1,10 @@
+[Unit]
+Description=Run ssl-checker daily
+Requires=ssl-checker.service
+
+[Timer]
+OnCalendar=daily
+AccuracySec=1h
+
+[Install]
+WantedBy=timers.target

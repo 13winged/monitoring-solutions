@@ -1,0 +1,17 @@
+[Unit]
+Description=Process Monitor Daemon
+After=network.target
+Wants=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/process-monitor.sh
+User=root
+
+# Настройки для безопасности
+ProtectSystem=strict
+ReadWritePaths=/var/log/process-monitor.log /var/lib/process-monitor /var/lib/node_exporter
+NoNewPrivileges=yes
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,4 @@
+# Простая конфигурация для проверки порта 443
+HOST=google.com
+PORT=443
+CHECK_INTERVAL=30
