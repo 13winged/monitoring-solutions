@@ -61,6 +61,16 @@ jobs:
           ./scripts/test-${{ matrix.component }}.sh
         fi
 
+    - name: Debug file structure
+      run: |
+        echo "Current directory: $(pwd)"
+        echo "Directory contents:"
+        ls -la
+        echo "ssl-checker contents:"
+        ls -la ssl-checker/
+        echo "ssl-checker/scripts contents:"
+        ls -la ssl-checker/scripts/
+        
     - name: Validate configuration examples
       run: |
         cd ${{ matrix.component }}
