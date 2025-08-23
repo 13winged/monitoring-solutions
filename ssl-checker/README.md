@@ -1,35 +1,18 @@
-# Port Checker Daemon
+# SSL Checker
 
-Демон для проверки доступности порта 443 на заданных хостах с интеграцией в Prometheus.
+Демон для проверки SSL/TLS сертификатов с отправкой метрик в Prometheus.
 
 ## Особенности
 
-- Проверка доступности портов с использованием netcat
-- Логирование результатов в файл и syslog
+- Проверка срока действия SSL сертификатов
+- Отслеживание дней до истечения срока действия
 - Генерация метрик в формате Prometheus
-- Интеграция с systemd для автоматического запуска
-- Гибкая конфигурация через файл настроек
+- Логирование результатов проверки
+- Интеграция с Systemd для автоматического запуска
 
 ## Установка
 
-1. Клонируйте репозиторий:
-
 ```bash
-   git clone https://github.com/13winged/port-checker.git
-   cd port-checker
-```
-
-2. Запустите скрипт установки:
-
-```bash
-    chmod +x install-port-checker.sh
-    ./install-port-checker.sh
-```
-
-3. Настройте конфигурацию в /etc/port-checker.conf
-
-4. Проверьте установку:
-
-```bash
-test-port-checker.sh
+    cd ssl-checker
+    sudo ./scripts/install-ssl-checker.sh
 ```
