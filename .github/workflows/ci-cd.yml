@@ -89,6 +89,7 @@ docker-build:
       file: ./Dockerfile
       push: false
       tags: monitoring-solutions:latest
+      load: true
 
   release:
     runs-on: ubuntu-latest
