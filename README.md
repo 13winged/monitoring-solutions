@@ -139,8 +139,6 @@ Pre-configured dashboards include:
 - **SSL Certificate Health** - Certificate expiration timeline
 - **Process Analytics** - Process performance and restart history
 
-![Grafana Dashboard](https://via.placeholder.com/800x400?text=Grafana+Dashboard+Screenshot)
-
 ## 🔧 Development
 
 ### Project Structure
@@ -214,4 +212,5 @@ process_monitor_restarts_total{process="nginx"} 2
 
 - Prometheus Community
 - Grafana Labs
+
 - Open Source Monitoring Tools
