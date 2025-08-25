@@ -2,9 +2,9 @@ name: CI/CD for Monitoring Solutions
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [main, master]
   pull_request:
-    branches: [ main, master ]
+    branches: [main, master]
 
 jobs:
   lint-and-test:
@@ -17,73 +17,48 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Setup Bash
-      run: echo "SHELL=/bin/bash" >> $GITHUB_ENV
-
-    - name: Install dependencies
+    - name: Setup environment
       run: |
+        echo "SHELL=/bin/bash" >> $GITHUB_ENV
+        # Установка всех зависимостей одним шагом
         sudo apt-get update
-        # Общие зависимости
-        sudo apt-get install -y shellcheck
-        # Зависимости для конкретных компонентов
-        if [ "${{ matrix.component }}" = "ssl-checker" ]; then
-          sudo apt-get install -y openssl
-        fi
-        if [ "${{ matrix.component }}" = "process-monitor" ]; then
-          sudo apt-get install -y curl procps
-        fi
-        if [ "${{ matrix.component }}" = "port-checker" ]; then
-          sudo apt-get install -y netcat-openbsd
-        fi
+        sudo apt-get install -y shellcheck openssl curl procps netcat-openbsd
 
     - name: Lint check for ${{ matrix.component }}
       run: |
-        cd ${{ matrix.component }}/src
-        if ls *.sh 1> /dev/null 2>&1; then
-          shellcheck *.sh || echo "ShellCheck issues found but not failing build"
-        else
-          echo "No shell scripts found for linting"
-        fi
-
-    - name: Test ${{ matrix.component }}
-      run: |
         cd ${{ matrix.component }}
-        if [ -f "scripts/test-${{ matrix.component }}.sh" ]; then
-          chmod +x scripts/test-${{ matrix.component }}.sh
-          ./scripts/test-${{ matrix.component }}.sh
-        else
-          echo "No test script found for ${{ matrix.component }}, creating basic test..."
-          # Создание базового теста, если он отсутствует
-          echo "#!/bin/bash" > scripts/test-${{ matrix.component }}.sh
-          echo "echo \"Basic test for ${{ matrix.component }}\"" >> scripts/test-${{ matrix.component }}.sh
-          echo "echo \"Test completed successfully!\"" >> scripts/test-${{ matrix.component }}.sh
-          chmod +x scripts/test-${{ matrix.component }}.sh
-          ./scripts/test-${{ matrix.component }}.sh
-        fi
+        # Ищем shell-скрипты во всех директориях компонента
+        find . -name "*.sh" -exec shellcheck {} \; || echo "ShellCheck issues found but not failing build"
 
-    - name: Debug file structure
-      run: |
-        echo "Current directory: $(pwd)"
-        echo "Directory contents:"
-        ls -la
-        echo "ssl-checker contents:"
-        ls -la ssl-checker/
-        echo "ssl-checker/scripts contents:"
-        ls -la ssl-checker/scripts/
-        
     - name: Validate configuration examples
       run: |
         cd ${{ matrix.component }}
         if [ -d "examples" ]; then
+          # Даем права на выполнение скрипту валидации
+          if [ -f "scripts/validate-config.sh" ]; then
+            chmod +x scripts/validate-config.sh
+          fi
+          
           cd examples
           for conf_file in *.conf*; do
             if [ -f "$conf_file" ]; then
               echo "Validating $conf_file"
               if [ -f "../scripts/validate-config.sh" ]; then
-                ../scripts/validate-config.sh "$conf_file"
+                # Явно запускаем через bash если нет прав
+                bash ../scripts/validate-config.sh "$conf_file"
               fi
             fi
           done
+        fi
+
+    - name: Test ${{ matrix.component }}
+      run: |
+        cd ${{ matrix.component }}
+        if [ -f "scripts/test.sh" ]; then
+          chmod +x scripts/test.sh
+          ./scripts/test.sh
+        else
+          echo "No test script found for ${{ matrix.component }}, skipping tests."
         fi
 
   docker-build:
@@ -101,9 +76,10 @@ jobs:
     - name: Build and push Docker images
       uses: docker/build-push-action@v4
       with:
-        context: ./docker
+        context: .
         push: false
         tags: monitoring-solutions:latest
+        file: Dockerfile
 
   release:
     runs-on: ubuntu-latest
@@ -116,17 +92,20 @@ jobs:
 
     - name: Create release archive
       run: |
-        mkdir release
-        cp -r process-monitor release/
-        cp -r port-checker release/
-        cp -r ssl-checker release/
-        cp -r docker release/
-        cp -r scripts release/
-        cp -r docs release/
-        cp -r examples release/
-        cp LICENSE release/
-        cp README.md release/
-        cp CHANGELOG.md release/
+        mkdir -p release
+        # Копируем только существующие директории
+        [ -d "process-monitor" ] && cp -r process-monitor release/
+        [ -d "port-checker" ] && cp -r port-checker release/
+        [ -d "ssl-checker" ] && cp -r ssl-checker release/
+        [ -d "docker" ] && cp -r docker release/
+        [ -d "scripts" ] && cp -r scripts release/
+        [ -d "docs" ] && cp -r docs release/
+        [ -d "examples" ] && cp -r examples release/
+        
+        # Копируем только существующие файлы
+        [ -f "LICENSE" ] && cp LICENSE release/
+        [ -f "README.md" ] && cp README.md release/
+        [ -f "CHANGELOG.md" ] && cp CHANGELOG.md release/
         
         tar -czf monitoring-solutions-${GITHUB_REF#refs/tags/}.tar.gz -C release .
         
