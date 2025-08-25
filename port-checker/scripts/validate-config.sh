@@ -13,6 +13,32 @@ if [ ! -s "$CONFIG_FILE" ]; then
     exit 1
 fi
 
+# Для advanced конфигов проверяем только синтаксис, но не обязательные параметры
+if [[ "$CONFIG_FILE" == *.advanced ]]; then
+    echo "⚠️ Advanced config detected - skipping required parameter checks"
+    
+    # Проверяем только синтаксис чисел для порта и интервала
+    if grep -q "^PORT=" "$CONFIG_FILE"; then
+        port=$(grep "^PORT=" "$CONFIG_FILE" | cut -d'=' -f2-)
+        if [[ ! $port =~ ^[0-9]+$ ]]; then
+            echo "❌ PORT must be a number"
+            exit 1
+        fi
+    fi
+
+    if grep -q "^CHECK_INTERVAL=" "$CONFIG_FILE"; then
+        interval=$(grep "^CHECK_INTERVAL=" "$CONFIG_FILE" | cut -d'=' -f2-)
+        if [[ ! $interval =~ ^[0-9]+$ ]]; then
+            echo "❌ CHECK_INTERVAL must be a number"
+            exit 1
+        fi
+    fi
+    
+    echo "✅ Advanced configuration file is valid"
+    exit 0
+fi
+
+# Стандартная проверка для обычных конфигов
 required_params=("HOST" "PORT")
 for param in "${required_params[@]}"; do
     if ! grep -q "^$param=" "$CONFIG_FILE"; then
