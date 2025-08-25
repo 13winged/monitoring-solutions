@@ -61,25 +61,34 @@ jobs:
           echo "No test script found for ${{ matrix.component }}, skipping tests."
         fi
 
-  docker-build:
-    runs-on: ubuntu-latest
-    if: github.event_name == 'push'
-    needs: lint-and-test
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
+docker-build:
+  runs-on: ubuntu-latest
+  if: github.event_name == 'push'
+  needs: lint-and-test
+  
+  steps:
+  - name: Checkout code
+    uses: actions/checkout@v3
 
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v2
+  - name: Set up Docker Buildx
+    uses: docker/setup-buildx-action@v2
 
-    - name: Build and push Docker images
-      uses: docker/build-push-action@v4
-      with:
-        context: .
-        push: false
-        tags: monitoring-solutions:latest
-        file: Dockerfile
+  - name: Verify Dockerfile exists
+    run: |
+      if [ ! -f "Dockerfile" ]; then
+        echo "❌ ERROR: Dockerfile not found in project root!"
+        echo "Please create Dockerfile in the root directory"
+        exit 1
+      fi
+      echo "✅ Dockerfile found"
+
+  - name: Build Docker image
+    uses: docker/build-push-action@v4
+    with:
+      context: .
+      file: ./Dockerfile
+      push: false
+      tags: monitoring-solutions:latest
 
   release:
     runs-on: ubuntu-latest
